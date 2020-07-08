@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-#demobrunvh
 #demobrunch
 
 import pandas as pd
