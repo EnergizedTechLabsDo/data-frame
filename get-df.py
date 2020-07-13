@@ -8,8 +8,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-url="https://github.com/EnergizedTechLabsDo/data-frame/raw/master/Datensammlung.xlsx"
-df = pd.read_excel(url)
+url="https://raw.githubusercontent.com/EnergizedTechLabsDo/data-frame/master/Datensammlung.csv"
+df = pd.read_csv(url)
 
 print(df.shape)
 
