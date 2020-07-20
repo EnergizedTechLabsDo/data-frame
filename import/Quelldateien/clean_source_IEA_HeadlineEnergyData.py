@@ -1,4 +1,4 @@
-# Anpassung der Quelldatei IEA_HeadlineEnergyData
+ # Anpassung der Quelldatei IEA_HeadlineEnergyData
 import pandas as pd
 import numpy as np
 

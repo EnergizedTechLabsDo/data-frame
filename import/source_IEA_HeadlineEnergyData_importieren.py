@@ -18,7 +18,9 @@ nan_indices = dataframe.index[np.isnan(dataframe[col])].tolist()
 uebertragungen = 0
 print('Übertrage Daten ...')
 for index in nan_indices:
+
     try:
+
         dataframe.loc[index, col] = sourcedata.loc[index, col]
         if np.isnan(sourcedata.loc[index, col]):
             continue
