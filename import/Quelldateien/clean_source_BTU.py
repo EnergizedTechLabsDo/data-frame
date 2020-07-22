@@ -37,11 +37,6 @@ for i in range(frame.shape[0]):
 index_names = ['Entity', 'Category', 'Year', 'Value']
 frame.columns = index_names
 
-# Nachgucken !!!
-
-# Tab
-frame = frame.pivot_table(index = ['Entity', 'Year'], columns = 'Category', values = 'Value', aggfunc = 'first')
-
 print(frame.head(25), frame.columns)
 
-frame.to_csv('source_BTU_cleaned_pivot.csv')
+frame.to_csv('source_BTU_tidy.csv')

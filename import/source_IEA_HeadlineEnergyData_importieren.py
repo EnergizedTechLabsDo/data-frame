@@ -14,13 +14,10 @@ dataframe = pd.read_excel(dataframe_name, index_col = [0,1])
 # dataframe.loc[('Germany', 2000), col] = np.nan
 
 nan_indices = dataframe.index[np.isnan(dataframe[col])].tolist()
-
 uebertragungen = 0
 print('Übertrage Daten ...')
 for index in nan_indices:
-
     try:
-
         dataframe.loc[index, col] = sourcedata.loc[index, col]
         if np.isnan(sourcedata.loc[index, col]):
             continue
