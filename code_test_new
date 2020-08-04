@@ -1,23 +1,27 @@
 # import necessary libs
+import statsmodels.formula.api as smf
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+from numpy import nan
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-from numpy import nan
-from sklearn.model_selection import KFold
-from sklearn.model_selection import cross_val_score
-import statsmodels.formula.api as smf
-sns.set()
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import StandardScaler
+
 
 # data import and overview
 import_data = "Data_test.xlsx"
 df = pd.read_excel(import_data)
-df = df.set_index("Entity")
 print(df)
+df["Entity"].drop_duplicates()
+# df = df.set_index("Entity")
 
 print(df.shape)
 print(len(df))
@@ -27,35 +31,87 @@ print(df.isnull().sum())
 print(df.isnull().sum())
 print(df.head(-20))
 
-# exploratory plots
+# some unnecessary stuff
 gdp_max = df["GDP"].max()
-label_ger = df.loc["Germany"]
-label_chn = df.loc["China"]
+# label_ger = df.loc["Germany"]
+# abel_chn = df.loc["China"]
+
+# exploratory plots; is data complete?
 plt.figure(figsize=(12, 4))
 sns.heatmap(df.isnull(), yticklabels=False, cbar=False, cmap="viridis")
 plt.show()
 sns.distplot(df["GDP"], color="purple", bins=10)
 plt.show()
 
-plt.scatter(label_ger["Coal consumption per capita"],
-            label_ger["Co2e"], color="blue", label=label_ger)
+# exploratory plot; general overview via easy scatter
+sns.scatterplot(data=df, x="Coal consumption per capita", y="Co2e",
+                palette="Set1", hue=df["Entity"])
+plt.style.use("ggplot")
+plt.legend(loc="upper left")
 plt.xlabel("Kohleverbrauch pro Kopf in Tonnen Erdöl")
 plt.ylabel("CO2 Verbrauch pro Kopf in Tonnen Erdöl")
-plt.show()
-plt.scatter(label_ger["Year"], label_ger["GDP"],
-            marker="o", color="green", label=label_ger)
-plt.scatter(label_chn["Year"], label_chn["GDP"],
-            marker="o", color="red", label=label_chn)
-plt.style.use("ggplot")
-plt.xlabel("Jahr")
-plt.ylabel("Bruttoinlandsprodukt in 10 hoch 12 $")
-# plt.legend(loc="upper left") # to modify
 plt.title("Falafelburger")
 plt.show()
+# distribution of data for two features
+sns.violinplot(x="Entity", y="Coal consumption per capita",
+               data=df, inner=None, color="lightgrey")
+sns.stripplot(x="Entity", y="Coal consumption per capita",
+              data=df, jitter=True, size=4)
+plt.ylabel("Co2e per capita in tonnes equal oil")
+plt.plot()
+plt.show()
+
+# heatmap for correlation of features
+corr = df.corr()
+ax = sns.heatmap(corr, vmin=-1, vmax=1, center=0, cmap=sns.diverging_palette(20,
+                                                                             220, n=200), square=True)
+ax.set_xticklabels(ax.get_xticklabels(), rotation=45, horizontalalignment='right')
+plt.show()
+
+# plot for comparing history of two features and countries
+sns.set(style="darkgrid")
+sns.lineplot(data=df, x="Year", y="Co2e", hue="Entity")
+plt.plot()
+
 
 # regression, kausaler zsmhang
-sns.lmplot(x="Year", y="GDP", data=label_ger)
-sns.lmplot(x="Year", y="GDP", data=label_chn)
+sns.lmplot(x="Year", y="GDP", data=df, hue="Entity", palette="bright")
 plt.xlabel("Jahr")
 plt.ylabel("Bruttoinlandsprodukt in 10 hoch 12 $")
 plt.show()
+
+# Supervised Maschine Learning Content Overview of data
+X = df["Coal consumption per capita"].values.reshape(-1, 1)
+y = df["Co2e"].values.reshape(-1, 1)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+model = LinearRegression()
+model.fit(X, y)
+prediction_space = np.linspace(min(X), max(X)).reshape(-1, 1)
+y_pred = model.predict(prediction_space)
+score_model = model.score(X_test, y_test)
+print("\nScore of model: ", score_model)
+plt.xlabel("Coal consumption per capita in tonnes equal oil")
+plt.ylabel("Co2e per capita in tonnes equal oil")
+plt.scatter(X, y, color="red")
+plt.plot(prediction_space, y_pred, color="black", linewidth=4)
+plt.show()
+
+
+# initiate supervised maschine learning model Regression and get models performance
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+steps = [("StandardScaler", StandardScaler()), ("RidgeReg", Ridge())]
+pipeline = Pipeline(steps)
+pipeline.fit(X, y)
+y_pred = pipeline.predict(X_test)
+score_model = pipeline.score(X_test, y_test)
+print("\nScore of model: ", score_model)
+
+# Finetune model and look for best options
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+ridge = Ridge()
+param_grid = {"alpha": np.arange(start=0.1, stop=1.1, step=0.1)}
+ridge_cv = GridSearchCV(ridge, param_grid, cv=10)
+ridge_cv.fit(X, y)
+print("\n best parameter to choose: ", ridge_cv.best_params_)
+print("\n best score:", ridge_cv.score)
